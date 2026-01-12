@@ -1,12 +1,14 @@
 "use server";
 
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import summarizeArticle from "@/ai/summarize";
+import redis from "@/cache";
 import db from "@/db";
 import { authorizeUserToEditArticle } from "@/db/authz";
 import { articles } from "@/db/schema";
 import { ensureUserExists } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
-import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 
 export type CreateArticleInput = {
   title: string;
@@ -28,7 +30,8 @@ export async function createArticle(data: CreateArticleInput) {
   }
 
   await ensureUserExists(user);
-  // TODO: Replace with actual database call
+
+  const summary = await summarizeArticle(data.title || "", data.content || "");
 
   const response = await db
     .insert(articles)
@@ -38,10 +41,14 @@ export async function createArticle(data: CreateArticleInput) {
       slug: `${Date.now()}`,
       published: true,
       authorId: user.id,
+      summary,
     })
     .returning({ id: articles.id });
 
   const articleId = response[0]?.id;
+
+  redis.del("articles:all");
+
   return { success: true, message: "Article create logged", id: articleId };
 }
 
@@ -56,12 +63,15 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
     throw new Error("❌ Forbidden");
   }
 
-  // TODO: Replace with actual database update
+  const summary = await summarizeArticle(data.title || "", data.content || "");
+
   await db
     .update(articles)
     .set({
       title: data.title,
       content: data.content,
+      imageUrl: data.imageUrl ?? undefined,
+      summary: summary ?? undefined,
     })
     .where(eq(articles.id, +id));
   console.log("📝 updateArticle called:", { id, ...data });

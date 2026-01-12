@@ -6,13 +6,13 @@ export default async function Home() {
   return (
     <div>
       <main className="max-w-2xl mx-auto mt-10 flex flex-col gap-6">
-        {articles.map(({ title, id, author, createdAt, content }) => (
+        {articles?.map(({ title, id, author, createdAt, summary }) => (
           <WikiCard
             key={id}
             title={title}
             author={author ? author : "Unknown Author"}
             date={createdAt}
-            summary={content}
+            summary={summary ?? "No summary available."}
             href={`/wiki/${id}`}
           />
         ))}

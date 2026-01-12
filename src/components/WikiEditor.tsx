@@ -1,16 +1,16 @@
 "use client";
 
+import MDEditor from "@uiw/react-md-editor";
+import { Upload, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
 import { createArticle, updateArticle } from "@/app/actions/article";
 import { uploadFile } from "@/app/actions/upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import MDEditor from "@uiw/react-md-editor";
-import { Upload, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import type React from "react";
-import { useState } from "react";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -18,12 +18,6 @@ interface WikiEditorProps {
   isEditing?: boolean;
   articleId?: string;
   userId?: string;
-}
-
-interface FormData {
-  title: string;
-  content: string;
-  files: File[];
 }
 
 interface FormErrors {
@@ -129,7 +123,7 @@ export default function WikiEditor({
   const handleCancel = () => {
     // In a real app, you would navigate back
     const shouldLeave = window.confirm(
-      "Are you sure you want to cancel? Any unsaved changes will be lost."
+      "Are you sure you want to cancel? Any unsaved changes will be lost.",
     );
     if (shouldLeave) {
       console.log("User cancelled editing");
